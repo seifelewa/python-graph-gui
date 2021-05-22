@@ -278,6 +278,27 @@ class GraphScene(QtWidgets.QGraphicsScene):
             else: # else print error
                 self.InvalidInMsg.setText('Must select 2 nodes to find shortest path')
                 self.InvalidInMsg.exec_()
+        elif self.current_path_algo == 'UCS': # if current algorithm is UCS
+            if self.check_selected(2): # if nodes are selected run UCS between them
+                self.show_UCS(self.selected[0].val, self.selected[1].val)
+                self.deselect_nodes() # deselect nodes
+            else: # else print error
+                self.InvalidInMsg.setText('Must select 2 nodes to find shortest path')
+                self.InvalidInMsg.exec_()
+        elif self.current_path_algo == 'BFS': # if current algorithm is BFS
+            if self.check_selected(2): # if nodes are selected run BFS between them
+                self.show_BFS(self.selected[0].val, self.selected[1].val)
+                self.deselect_nodes() # deselect nodes
+            else: # else print error
+                self.InvalidInMsg.setText('Must select 2 nodes to find shortest path')
+                self.InvalidInMsg.exec_()
+        elif self.current_path_algo == 'DFS': # if current algorithm is DFS
+            if self.check_selected(2): # if nodes are selected run DFS between them
+                self.show_DFS(self.selected[0].val, self.selected[1].val)
+                self.deselect_nodes() # deselect nodes
+            else: # else print error
+                self.InvalidInMsg.setText('Must select 2 nodes to find shortest path')
+                self.InvalidInMsg.exec_()
         
     def select_node(self, event):
         node = self.itemAt(event.scenePos(), QtGui.QTransform()) # get item clicked on at this position in scene
@@ -294,7 +315,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
         x = event.scenePos().x() # get x position of mouse
         y = event.scenePos().y() # get y position of mouse
 
-        node_val, ok = QtWidgets.QInputDialog.getText(QtWidgets.QWidget(), 'Input Dialog', 
+        node_val, ok = QtWidgets.QInputDialog.getText(QtWidgets.QWidget(), 'Node Name',
             'Enter node name:') # use dialog to get node value to be added
         
         if ok: # dialog value was input
@@ -304,14 +325,26 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self.delete_shortest_path() # delete shortest path
                 if node_val in self.nodes: # node being added already exists
                     connections = self.remove_node(node_val) # remove original node and save all its node connections
-                     
+
+                heuristic_val, ok = QtWidgets.QInputDialog.getText(QtWidgets.QWidget(), 'Node heuristic',
+                                                                   'Enter node heuristic:')  # use dialog to get node value to be added
+                if ok:
+                  #  h = int(heuristic_val)
+                   self.addSimpleText(heuristic_val)
+                   # if len(str(heuristic_val) > 0) and h >= 0:
+                     #   self.InvalidInMsg.setText("Yes")
+                   #else:
+                     #   self.InvalidInMsg.setText('Node heuristic must be greater than 0')  # print message if invalid dialog input
+                     #   self.InvalidInMsg.exec_()
+                     #   return
+
                 node = Node(x-20, y-20, str(node_val)) # create a new node at the given x and y coordinates
                 self.addItem(node) # add node to scene
                 self.nodes[node.val] = node # add node to node dictionary
                 self.graph.add_node(node.val) # add node value to underlying graph objects
                 for connection in connections: # for each of the original node connections
                     self.add_edge(connection[0], connection[1], connection[2]) # add the original edges
-                 
+
             else: 
                 self.InvalidInMsg.setText('Node name must consist of between 1 and 4 characters') # print message if invalid dialog input
                 self.InvalidInMsg.exec_()
@@ -323,6 +356,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self.reset_path() # find and display path
 
             self.data_updater.signal.emit() # emit a signal to notify that the graph was updated
+
 
 
     def add_edge(self, node1_val, node2_val, weight):
@@ -480,6 +514,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
         self.data_updater.signal.emit() # emit a signal to notify that the graph was updated
 
 
+
     def show_shortest_path_bellman_ford(self, from_node_val, to_node_val):
         self.delete_shortest_path() # delete shortest path if currently displayed
         path = None
@@ -552,8 +587,132 @@ class GraphScene(QtWidgets.QGraphicsScene):
         
         
         self.data_updater.signal.emit()
-        
-    
+
+    def show_DFS(self, from_node_val, to_node_val):
+        self.delete_shortest_path()  # delete shortest path of currently displayed
+        path = None
+
+        if from_node_val not in self.nodes or to_node_val not in self.nodes:  # nodes for path not in nodes dictionary
+            self.InvalidInMsg.setText('Invalid node value input')
+            self.InvalidInMsg.exec_()  # show message and exit
+            return
+
+        short_path_info = path_alg.DepthFirst(self.graph, from_node_val, to_node_val)[
+            0]  # call Depth First algorithm on underlaying graph
+
+        path = short_path_info[2]  # get the path list from running that path search
+
+        if path == None:  # if no path
+            self.InvalidInMsg.setText(
+                'No path exists between nodes "' + str(from_node_val) + '" and "' + str(to_node_val) + '"')
+            self.InvalidInMsg.exec_()  # show message # deselect nodes in graph and exit
+            self.update()
+            return
+        node_val = None
+        while len(path) > 1:  # while length of path if greater than 1
+            node_val = path.pop(0)  # remove first item from path
+            self.nodes[node_val].highlighted = True  # highlight that node
+            if len(path) > 0:  # if length of path is still greater than 0
+                if (node_val, path[0]) in self.edges:  # and edge exists between current node value and next in path
+                    self.edges[(node_val, path[0])].highlighted = True  # highlight the edge
+                else:
+                    self.edges[(path[0],
+                                node_val)].highlighted = True  # else the edge exists as being from next in path to current node
+        self.nodes[path[0]].highlighted = True  # highlight the last node in the path
+
+        if self.digraph: self.overlay_highlighted()
+        self.update()
+        self.path_displayed = (
+        True, from_node_val, to_node_val, str(short_path_info[1]))  # reset path displayed information
+
+        self.data_updater.signal.emit()  # emit a signal to notify that the graph was updated
+
+    def show_BFS(self, from_node_val, to_node_val):
+        self.delete_shortest_path()  # delete shortest path of currently displayed
+        path = None
+
+        if from_node_val not in self.nodes or to_node_val not in self.nodes:  # nodes for path not in nodes dictionary
+            self.InvalidInMsg.setText('Invalid node value input')
+            self.InvalidInMsg.exec_()  # show message and exit
+            return
+
+        short_path_info = path_alg.BreadthFirst(self.graph, from_node_val, [to_node_val])[
+            0]  # call Breadth first algorithm on underlaying graph
+
+        if short_path_info[1] < 0:
+            self.InvalidInMsg.setText('DIJKSTRA requires connected edges to be positive')
+            self.InvalidInMsg.exec_()  # show message and exit
+            return
+        path = short_path_info[2]  # get the path list from running that path search
+
+        if path == None:  # if no path
+            self.InvalidInMsg.setText(
+                'No path exists between nodes "' + str(from_node_val) + '" and "' + str(to_node_val) + '"')
+            self.InvalidInMsg.exec_()  # show message # deselect nodes in graph and exit
+            self.update()
+            return
+        node_val = None
+        while len(path) > 1:  # while length of path if greater than 1
+            node_val = path.pop(0)  # remove first item from path
+            self.nodes[node_val].highlighted = True  # highlight that node
+            if len(path) > 0:  # if length of path is still greater than 0
+                if (node_val, path[0]) in self.edges:  # and edge exists between current node value and next in path
+                    self.edges[(node_val, path[0])].highlighted = True  # highlight the edge
+                else:
+                    self.edges[(path[0],
+                                node_val)].highlighted = True  # else the edge exists as being from next in path to current node
+        self.nodes[path[0]].highlighted = True  # highlight the last node in the path
+
+        if self.digraph: self.overlay_highlighted()
+        self.update()
+        self.path_displayed = (
+        True, from_node_val, to_node_val, str(short_path_info[1]))  # reset path displayed information
+
+        self.data_updater.signal.emit()  # emit a signal to notify that the graph was updated
+
+    def show_UCS(self, from_node_val, to_node_val):
+        self.delete_shortest_path()  # delete shortest path of currently displayed
+        path = None
+
+        if from_node_val not in self.nodes or to_node_val not in self.nodes:  # nodes for path not in nodes dictionary
+            self.InvalidInMsg.setText('Invalid node value input')
+            self.InvalidInMsg.exec_()  # show message and exit
+            return
+
+        short_path_info = path_alg.UCS(self.graph, from_node_val, to_node_val)[
+            0]  # call Uniform Cost Search on underlying graph
+
+        if short_path_info[1] < 0:
+            self.InvalidInMsg.setText('Uniform Cost Search requires connected edges to be positive')
+            self.InvalidInMsg.exec_()  # show message and exit
+            return
+        path = short_path_info[2]  # get the path list from running that path search
+
+        if path == None:  # if no path
+            self.InvalidInMsg.setText(
+                'No path exists between nodes "' + str(from_node_val) + '" and "' + str(to_node_val) + '"')
+            self.InvalidInMsg.exec_()  # show message # deselect nodes in graph and exit
+            self.update()
+            return
+        node_val = None
+        while len(path) > 1:  # while length of path if greater than 1
+            node_val = path.pop(0)  # remove first item from path
+            self.nodes[node_val].highlighted = True  # highlight that node
+            if len(path) > 0:  # if length of path is still greater than 0
+                if (node_val, path[0]) in self.edges:  # and edge exists between current node value and next in path
+                    self.edges[(node_val, path[0])].highlighted = True  # highlight the edge
+                else:
+                    self.edges[(path[0],
+                                node_val)].highlighted = True  # else the edge exists as being from next in path to current node
+        self.nodes[path[0]].highlighted = True  # highlight the last node in the path
+
+        if self.digraph: self.overlay_highlighted()
+        self.update()
+        self.path_displayed = (
+        True, from_node_val, to_node_val, str(short_path_info[1]))  # reset path displayed information
+
+        self.data_updater.signal.emit()  # emit a signal to notify that the graph was updated
+
     def delete_shortest_path(self):
         for val, node in self.nodes.items(): # for each node in nodes dictionary
             node.highlighted = False # remove node highlights 
@@ -582,6 +741,12 @@ class GraphScene(QtWidgets.QGraphicsScene):
             self.show_shortest_path_dijkstra(self.path_displayed[1], self.path_displayed[2]) # run dijskstra
         elif self.current_path_algo == 'BELLMAN FORD': # if current algorithm is bellman_ford
             self.show_shortest_path_bellman_ford(self.path_displayed[1], self.path_displayed[2]) # run bellman ford
+        elif self.current_path_algo == 'UCS': # if current algorithm is bellman_ford
+            self.show_UCS(self.path_displayed[1], self.path_displayed[2]) # run bellman ford
+        elif self.current_path_algo == 'BFS': # if current algorithm is bellman_ford
+            self.show_BFS(self.path_displayed[1], self.path_displayed[2]) # run bellman ford
+        elif self.current_path_algo == 'DFS': # if current algorithm is bellman_ford
+            self.show_DFS(self.path_displayed[1], self.path_displayed[2]) # run bellman ford
         
         self.update()
 

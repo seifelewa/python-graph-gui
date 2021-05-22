@@ -25,12 +25,16 @@ class Graph(object):
     self.digraph = digraph
     self.nodes_dict = {}
     self.edges_dict = {}
+    self.heuristic_dict = {}
 
     
   def add_node(self, node):
 
     if node not in self.nodes_dict: # node not yet in graph
       self.nodes_dict[node] = set() # add it to node dictionary and attach an empty set of adjacent nodes 
+
+  def add_heuristic(self,node,heuristic=0):
+    self.heuristic_dict[node] = heuristic
 
   def add_edge(self, from_node, to_node, weight):
     self.edges_dict[(from_node, to_node)] = weight # add an edge with given weight

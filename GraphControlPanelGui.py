@@ -179,7 +179,16 @@ class Ui_GraphControlWindow(object):
             self.scene.show_mst_prims() # run prims on GraphScene
         elif algo == 'BELLMAN FORD': # if using bellman ford
             # run bellman ford on GraphScene 
-            self.scene.show_shortest_path_bellman_ford(self.path_node1_edit.text(), self.path_node2_edit.text()) 
+            self.scene.show_shortest_path_bellman_ford(self.path_node1_edit.text(), self.path_node2_edit.text())
+        elif algo == 'UCS': # if using bellman ford
+            # run UCS on GraphScene
+            self.scene.show_UCS(self.path_node1_edit.text(), self.path_node2_edit.text())
+        elif algo == 'BFS': # if using bellman ford
+            # run BFS on GraphScene
+            self.scene.show_BFS(self.path_node1_edit.text(), self.path_node2_edit.text())
+        elif algo == 'DFS': # if using bellman ford
+            # run DFS on GraphScene
+            self.scene.show_DFS(self.path_node1_edit.text(), self.path_node2_edit.text())
         
           
        
