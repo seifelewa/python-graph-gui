@@ -36,6 +36,8 @@ class Graph(object):
   def add_heuristic(self,node,heuristic=0):
     self.heuristic_dict[node] = heuristic
 
+
+
   def add_edge(self, from_node, to_node, weight):
     self.edges_dict[(from_node, to_node)] = weight # add an edge with given weight
     self.nodes_dict[from_node].add(to_node) # add connection reference to nodes

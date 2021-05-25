@@ -72,7 +72,7 @@ class Ui_MainWindow(object):
         # setup combo box for selecting algorithms to run on graph
         self.select_path_alg_comboBox = SceneConnectedComboBox(self.centralwidget, self.scene) # box requires reference to scene 
         self.select_path_alg_comboBox.setEditable(False)
-        self.select_path_alg_comboBox.addItems(['DIJKSTRA','BELLMAN FORD', 'PRIMS','UCS','BFS','DFS']) # algorithms that can be run
+        self.select_path_alg_comboBox.addItems(['UCS','BFS','DFS','Greedy','A*','DIJKSTRA','BELLMAN FORD', 'PRIMS']) # algorithms that can be run
         self.select_path_alg_comboBox.setMaxVisibleItems(8)
         self.select_path_alg_comboBox.setObjectName("select_path_alg_comboBox")
         self.select_path_alg_comboBox.setCurrentIndex(0)

@@ -170,8 +170,10 @@ class Ui_GraphControlWindow(object):
 
     
     def show_selected_path(self):  
-        algo = self.scene.current_path_algo # get the current algorithm being used by GraphScene 
-   
+        algo = self.scene.current_path_algo # get the current algorithm being used by GraphScene
+
+        s = self.path_node2_edit.text()
+        l = s.split()
         if algo == 'DIJKSTRA': # if using dijkstra
             # run dijkstra on GraphScene with values from text edit boxes
             self.scene.show_shortest_path_dijkstra(self.path_node1_edit.text(), self.path_node2_edit.text())
@@ -189,6 +191,12 @@ class Ui_GraphControlWindow(object):
         elif algo == 'DFS': # if using bellman ford
             # run DFS on GraphScene
             self.scene.show_DFS(self.path_node1_edit.text(), self.path_node2_edit.text())
+        elif algo == 'Greedy': # if using bellman ford
+            # run Greedy on GraphScene
+            self.scene.show_Greedy(self.path_node1_edit.text(), self.path_node2_edit.text())
+        elif algo == 'A*':  # if using bellman ford
+            # run AStar on GraphScene
+            self.scene.show_AStar(self.path_node1_edit.text(), self.path_node2_edit.text())
         
           
        
